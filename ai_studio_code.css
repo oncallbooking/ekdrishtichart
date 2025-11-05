@@ -1,0 +1,202 @@
+/* Custom base styles */
+:root {
+  --bg-color: #f8f9fa; /* Light background */
+  --card-bg: #ffffff;
+  --text-color: #212529;
+  --muted-text: #6c757d;
+  --border-color: #dee2e6;
+  --primary-color: #0d6efd;
+  --radius: 0.5rem;
+  --shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg-color: #212529; /* Dark background */
+  --card-bg: #343a40;
+  --text-color: #f8f9fa;
+  --muted-text: #adb5bd;
+  --border-color: #495057;
+  --primary-color: #66b8ff;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  font-size: 0.875rem; /* Equivalent to Bootstrap's small */
+}
+
+.navbar {
+  background-color: var(--card-bg) !important;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+}
+
+.form-label, .small-muted {
+  color: var(--muted-text);
+  font-size: 0.75rem;
+}
+
+/* Layout */
+.dashboard-layout {
+  display: flex;
+  min-height: calc(100vh - 58px); /* Adjust based on navbar height */
+}
+
+#sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background-color: var(--card-bg);
+}
+
+#main {
+  flex-grow: 1;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.chart-card, .map-card {
+  height: 400px; /* Fixed height for dashboard items */
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-canvas-container {
+  flex-grow: 1;
+  position: relative; /* For Chart.js resize */
+  min-height: 0; /* Important for flex children */
+}
+
+#leafletMap {
+  height: 100%; /* Take full height of map-card-body */
+  border-radius: var(--radius);
+}
+
+/* Specific component styles */
+#dropZone {
+  border: 2px dashed var(--border-color);
+  transition: all 0.2s ease-in-out;
+}
+#dropZone.dragover {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+}
+
+.small-scroll {
+  max-height: 200px; /* For schema and filters */
+  overflow-y: auto;
+  padding-right: 5px; /* Prevent scrollbar from obscuring content */
+}
+
+.small-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.small-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+.filter-group {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.filter-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Data Table */
+.compact-table th, .compact-table td {
+  padding: 0.4rem 0.6rem;
+}
+.sticky-table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--card-bg);
+  z-index: 10;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.08);
+}
+
+/* Modal specific styles */
+#fullVizContent #chartCanvasFull {
+  max-height: 85vh; /* Limit full-screen chart height */
+  max-width: 95vw;
+}
+#fullVizContent #mapCanvasFull {
+  height: 85vh;
+  width: 95vw;
+}
+
+/* Theme toggle icon transition */
+#themeToggle i {
+  transition: transform 0.3s ease-in-out;
+}
+[data-theme="dark"] #themeToggle i.fa-moon {
+  transform: rotate(360deg);
+}
+[data-theme="light"] #themeToggle i.fa-sun {
+  transform: rotate(360deg);
+}
+
+/* Remove default Chart.js tooltip style for better integration */
+.chartjs-tooltip {
+  opacity: 0;
+  position: absolute;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  color: var(--text-color);
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  pointer-events: none;
+  transition: all 0.1s ease;
+  box-shadow: var(--shadow);
+}
+.chartjs-tooltip table {
+  margin: 0;
+}
+.chartjs-tooltip thead tr {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.25rem;
+}
+.chartjs-tooltip td {
+  padding: 0;
+}
+.chartjs-tooltip-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 991.98px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Stack charts on small screens */
+  }
+  .chart-card, .map-card {
+    height: auto; /* Allow height to adapt */
+    min-height: 300px;
+  }
+}

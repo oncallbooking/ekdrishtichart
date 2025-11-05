@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unified DataViz Studio</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet MarkerCluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg px-3 py-2 border-bottom">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#" aria-label="Unified DataViz Studio">
+        <i class="fa-solid fa-chart-line fa-lg text-primary"></i>
+        <span class="fw-bold">Unified DataViz Studio</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+        <button id="uploadDataBtn" class="btn btn-primary btn-sm me-2"><i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Data</button>
+        <button id="themeToggle" class="btn btn-outline-secondary btn-sm" aria-pressed="false" title="Toggle theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid dashboard-layout">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="p-3 border-end">
+      <div class="card p-3 mb-3">
+        <h6 class="mb-2">Dataset Overview</h6>
+        <div id="datasetInfo" class="small text-muted">No data loaded.</div>
+        <hr>
+        <h6 class="mb-2">Schema</h6>
+        <div id="schemaList" class="small-scroll"></div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Filters</h6>
+          <button id="resetFilters" class="btn btn-sm btn-outline-secondary" title="Reset all filters"><i class="fa-solid fa-eraser"></i></button>
+        </div>
+        <div id="filtersContainer" class="small-scroll">
+          <p class="text-muted small">Upload data to see filters.</p>
+        </div>
+      </div>
+
+      <div class="card p-3">
+        <h6 class="mb-2">Map Controls</h6>
+        <div class="d-grid gap-2">
+            <button id="renderMapBtn" class="btn btn-sm btn-info" disabled><i class="fa-solid fa-map-location-dot me-1"></i> Render Map</button>
+            <button id="geocodeAllBtn" class="btn btn-sm btn-outline-info" disabled><i class="fa-solid fa-globe me-1"></i> Auto-Geocode (Nominatim)</button>
+        </div>
+        <p class="text-muted small mt-2">Geocoding can be slow & rate-limited. Use sparingly.</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main" class="p-3">
+      <!-- Chart Creation Controls -->
+      <div class="card p-3 mb-3">
+        <h5 class="mb-3">Create New Chart</h5>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-2">
+            <label class="form-label small-muted">Chart Type</label>
+            <select id="chartType" class="form-select form-select-sm" aria-label="Select chart type">
+              <option value="bar">Bar</option>
+              <option value="horizontalBar">Horizontal Bar</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+              <option value="pie">Pie</option>
+              <option value="doughnut">Doughnut</option>
+              <option value="scatter">Scatter</option>
+              <option value="bubble">Bubble</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small-muted">X-Axis (Category/Time)</label>
+            <select id="xField" class="form-select form-select-sm" aria-label="X field"></select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small-muted">Y-Axis (Measure)</label>
+            <select id="yField" class="form-select form-select-sm" aria-label="Y field"></select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small-muted">Aggregation</label>
+            <select id="agg" class="form-select form-select-sm" aria-label="Aggregation">
+              <option value="count">Count</option>
+              <option value="sum">Sum</option>
+              <option value="avg">Average</option>
+              <option value="min">Min</option>
+              <option value="max">Max</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button id="addChart" class="btn btn-success btn-sm w-100" title="Add chart to dashboard" disabled><i class="fa-solid fa-plus me-1"></i> Add Chart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid -->
+      <div id="dashboard" class="dashboard-grid mb-3" aria-live="polite" aria-label="Dashboard charts and map">
+        <div id="noChartsMessage" class="small-muted p-3 text-center w-100">Click "Upload Data" to get started!</div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Data Table</h5>
+          <div class="d-flex gap-2">
+            <input id="tableSearch" class="form-control form-control-sm" placeholder="Search rows..." style="min-width:200px;">
+            <button id="exportTableCSV" class="btn btn-outline-primary btn-sm" disabled><i class="fa-solid fa-file-csv me-1"></i> Export CSV</button>
+          </div>
+        </div>
+
+        <div class="table-responsive small-scroll">
+          <table id="dataTable" class="table table-sm table-hover compact-table" aria-label="Data table">
+            <thead class="sticky-table">
+              <tr id="tableHead"></tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="100" class="text-center text-muted py-3">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div class="small-muted" id="tableInfo"></div>
+          <div class="btn-group">
+            <button id="prevPage" class="btn btn-sm btn-outline-secondary" disabled>Prev</button>
+            <button id="nextPage" class="btn btn-sm btn-outline-secondary" disabled>Next</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadModalLabel">Upload Data File (CSV / XLSX)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="dropZone" class="p-4 border rounded text-center mb-3">
+            <p class="lead"><i class="fa-solid fa-cloud-arrow-up fa-2x mb-2 text-primary"></i><br> Drag & Drop an <strong>.xlsx</strong> or <strong>.csv</strong> file here — or click to browse</p>
+            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" style="display:none;">
+            <button id="chooseFileBtn" class="btn btn-outline-primary"><i class="fa-solid fa-folder-open me-1"></i> Choose File</button>
+            <div id="uploadStatus" class="mt-3 small text-muted">Max file size depends on browser memory.</div>
+          </div>
+
+          <div id="sheetSelection" class="mb-3" style="display:none;">
+            <label for="sheetSelectModal" class="form-label">Select Sheet (for XLSX files)</label>
+            <select id="sheetSelectModal" class="form-select"></select>
+          </div>
+
+          <div id="previewTableContainerModal" class="table-responsive small-scroll mb-3" style="max-height: 250px; display:none;">
+            <h6>Data Preview (first 10 rows)</h6>
+            <table class="table table-sm table-bordered">
+              <thead id="previewTableHead"></thead>
+              <tbody id="previewTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="loadDataBtn" type="button" class="btn btn-primary" disabled><i class="fa-solid fa-file-import me-1"></i> Load Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart/Map Modal (for full view) -->
+  <div class="modal fade" id="fullVizModal" tabindex="-1" aria-labelledby="fullVizModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fullVizModalLabel">Full View</h5>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="downloadFullViz" title="Download"><i class="fa-solid fa-download"></i></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body p-0">
+          <div id="fullVizContent" class="d-flex justify-content-center align-items-center" style="height: 100%;">
+            <!-- Chart.js canvas or Leaflet map will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <!-- Main Script -->
+  <script src="script.js"></script>
+</body>
+</html>
